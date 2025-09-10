@@ -285,6 +285,38 @@ les secondes intercalaires. Autrement dit, vous pouvez faire comme s'il
 n'existait qu'un seul fuseau horaire, qu'on ne changeait jamais l'heure et
 qu'il n'existait pas de secondes intercalaires.
 
+## Représentation des horodates
+
+La représentation des horodates en informatique n'est pas simple, en
+particulier si on a besoin de tenir compte des fuseaux horaires, des
+changements d'heure et des secondes intercalaires.
+
+En C, la bibliothèque `time.h` fournit des types et des fonctions facilitant
+leur manipulation. Cependant, certaines fonctions de cette bibliothèque sont
+aujourd'hui obsolètes, alors que d'autres peuvent entraîner des comportements
+surprenants et devraient donc être évités. Pour en savoir plus sur le sujet,
+consulter la page
+[http://www.catb.org/esr/time-programming/](http://www.catb.org/esr/time-programming/),
+qui explique en détail ces limitations et qui énumère certaines
+recommandations.
+
+Pour le premier travail pratique, il est suffisant d'utiliser les éléments
+suivants de la bibliothèque `time.h`:
+
+* Le type `time_t`, qui représente une horodate à l'aide d'une valeur
+  numérique;
+* Le type `struct tm`, qui représente une horodate en séparant chacun de ses
+  champs, comme l'année, le mois, le jour du mois, l'heure, les minutes et les
+  secondes;
+* La fonction `strftime`, qui convertit une instance de `struct tm` en chaîne
+  de caractères;
+* La fonction `difftime`, qui retourne le temps écoulé entre deux horodates;
+* La fonction `gmtime`, qui convertit une valeur de type `time_t` en instance
+  de type `struct tm`;
+* La fonction `utils_timegm`, fournie dans le module `utils`, que vous pouvez
+  utiliser en ajoutant la directive `#include "utils.h"`, qui convertit une
+  instance de type `struct tm` en valeur de type `time_t`.
+
 ## Tâches à accomplir
 
 Afin de compléter ce travail pratique, vous devrez suivre les étapes suivantes:
