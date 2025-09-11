@@ -7,7 +7,6 @@ stages:
 build:
   stage: build
   script:
-    - apt install strace
     - make build || strace -f make build
   artifacts:
     paths:
@@ -16,5 +15,4 @@ build:
 test:
   stage: test
   script:
-    - apt install strace
     - make test || strace -f make test
