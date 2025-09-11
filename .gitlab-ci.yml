@@ -6,6 +6,8 @@ stages:
 
 build:
   stage: build
+  tags:
+    - calcul_runner1
   script:
     - make build || strace -f make build
   artifacts:
@@ -14,5 +16,7 @@ build:
 
 test:
   stage: test
+  tags:
+    - calcul_runner1
   script:
     - make test || strace -f make test
