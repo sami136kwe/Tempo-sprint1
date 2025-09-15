@@ -481,10 +481,10 @@ Les critères d'évaluation sont les suivants:
 
 Plus précisément, les éléments suivants seront pris en compte:
 
-- **Fonctionnalité (80 points)**: Le programme passe les tests *publics* et
+- **Fonctionnalité (60 points)**: Le programme passe les tests *publics* et
   *privés* en affichant le résultat attendu (1 point par test).
 
-- **Qualité du code (20 points)**: Les identifiants utilisés sont significatifs
+- **Qualité du code (15 points)**: Les identifiants utilisés sont significatifs
   et ont une syntaxe uniforme, le code est bien indenté, il y a de l'aération
   autour des opérateurs et des parenthèses, le programme est simple et lisible.
   Pas de bout de code en commentaire, de commentaires inutiles ou de
@@ -494,7 +494,7 @@ Plus précisément, les éléments suivants seront pris en compte:
   impeccable mais que votre travail est peu avancé, vous aurez peu de points
   pour cette partie.
 
-- **Documentation (20 points)**: Le fichier `README.md` contient toute
+- **Documentation (15 points)**: Le fichier `README.md` contient toute
   l'information demandée et utilise adéquatement le format Markdown. Toutes les
   fonctions sans exception ont une *docstring* qui suit le format suggéré en
   classe. La rédaction est soignée et contient peu ou pas de fautes
