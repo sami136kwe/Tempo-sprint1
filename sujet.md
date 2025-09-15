@@ -232,7 +232,7 @@ doivent être les suivants:
    valeur `2` qui doit être retournée, ainsi que le message:
 
     ```
-    error: invalid datetime format (should be YYYY:mm:DDTHH:MM:SS)
+    error: invalid datetime format (should be YYYY-mm-DDTHH:MM:SS)
     ```
 
 4. Si le format de l'horodate est valide, mais que l'horodate elle-même est
