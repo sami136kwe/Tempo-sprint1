@@ -21,3 +21,7 @@ utils.o: utils.c utils.h
 clean:
 	rm -f $(exec)
 	rm -f *.o
+
+
+
+hello world 
