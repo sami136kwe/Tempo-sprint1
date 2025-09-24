@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <string.h>    
 
 // Constants
 // ---------
@@ -59,10 +60,96 @@ struct Timeseries {
   int values[MAX_SIZE];
 };
 
+
+
+/**
+ * Validates and parses command line arguments
+ * @param argc Number of arguments
+ * @param argv Array of arguments
+ * @return Command type (0=help, 1=show, 2=describe) or -1 for error
+ */
+int parse_command(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "error: subcommand is mandatory\n");
+        return -1;
+    }
+    
+    if (strcmp(argv[1], "help") == 0) {
+        return 0;
+    } else if (strcmp(argv[1], "show") == 0) {
+        return 1;
+    } else if (strcmp(argv[1], "describe") == 0) {
+        return 2;
+    } else {
+        fprintf(stderr, "error: unrecognized subcommand '%s'\n", argv[1]);
+        return -1;
+    }
+}
+/**
+ * Parses a datetime string in YYYY-mm-DDTHH:MM:SS format
+ * @param datetime_str String to parse
+ * @param datetime Output datetime structure
+ * @return 0 on success, -1 on format error, -2 on invalid datetime
+ */
+int parse_datetime(const char *datetime_str, struct Datetime *datetime);
+
+/**
+ * Parses an observation line (offset value)
+ * @param line Line to parse
+ * @param offset Output offset
+ * @param value Output value
+ * @return 0 on success, -1 on format error, -2 on negative offset
+ */
+int parse_observation(const char *line, int *offset, int *value);
+
+/**
+ * Reads and validates a timeseries from stdin
+ * @param ts Output timeseries structure
+ * @return 0 on success, error code otherwise
+ */
+int read_timeseries(struct Timeseries *ts);
+
+/**
+ * Shows the timeseries (show command)
+ * @param ts Timeseries to display
+ */
+void show_timeseries(const struct Timeseries *ts);
+
+/**
+ * Describes the timeseries (describe command)
+ * @param ts Timeseries to describe
+ */
+void describe_timeseries(const struct Timeseries *ts);
+
+/**
+ * Converts offset to datetime
+ * @param start_time Reference time
+ * @param offset Offset in seconds
+ * @param result Output datetime
+ */
+void offset_to_datetime(time_t start_time, int offset, struct Datetime *result);
+
 // Main
 // ----
 
-int main(void) {
-  printf("tempo\n");
-  return 0;
+int main(int argc, char *argv[]) {
+    int cmd = parse_command(argc, argv);
+    
+    if (cmd == -1) {
+        return 1;
+    }
+    
+    switch (cmd) {
+        case 0: // help
+            printf("%s", HELP);
+            break;
+        case 1: // show
+            printf("TODO: implement show command\n");
+            break;
+        case 2: // describe
+            printf("TODO: implement describe command\n");
+            break;
+    }
+    
+    return 0;
 }
