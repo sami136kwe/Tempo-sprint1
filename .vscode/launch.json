@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/helloworld/Desktop/INF3135/inf3135-253-tp1/src",
+      "program": "/Users/helloworld/Desktop/INF3135/inf3135-253-tp1/src/build/Debug/outDebug"
+    }
+  ]
+}
