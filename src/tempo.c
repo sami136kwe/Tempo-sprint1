@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
-#include <string.h>    
+#include <string.h>  
+#include "utils.h"  
 
 // Constants
 // ---------
@@ -91,7 +92,92 @@ int parse_command(int argc, char *argv[]) {
  * @param datetime Output datetime structure
  * @return 0 on success, -1 on format error, -2 on invalid datetime
  */
-int parse_datetime(const char *datetime_str, struct Datetime *datetime);
+int parse_datetime(const char *datetime_str, struct Datetime *datetime) {
+    
+    if ( strlen(datetime_str)!=DATETIME_LENGTH) {
+         return -1; // error
+    }
+    
+    //struct type variable suivie nom exemple Points2d type de la varible et p cest le nom de la variable 
+    //struct Point2d p;
+    
+    struct DateAndTime {
+        int verify_sec;
+        int verify_min;
+        int verify_hours;
+        int verify_day;
+        int verify_month;
+        int verify_year;
+    };
+    
+    struct DateAndTime verify;
+    
+    if (sscanf(datetime_str, "%4d-%2d-%2dT%2d:%2d:%2d",
+           &verify.verify_year,
+           &verify.verify_month,
+           &verify.verify_day,
+           &verify.verify_hours,
+           &verify.verify_min,
+           &verify.verify_sec) != 6) {
+    return -1;
+}
+    // The scanf function returns an integer value which indicates the number of 
+    // input items successfully matched and assigned.  
+    // si scanf ne lit pas exactement 6 champs error
+    
+    if (datetime_str[4]  != '-') return -1;
+    if (datetime_str[7]  != '-') return -1;
+    if (datetime_str[10] != 'T') return -1;
+    if (datetime_str[13] != ':') return -1;
+    if (datetime_str[16] != ':') return -1;
+    
+    if (verify.verify_sec < 0 || verify.verify_sec > 59) return -2;
+    if (verify.verify_min < 0 || verify.verify_min > 59) return -2;
+    if (verify.verify_hours < 0 || verify.verify_hours > 23) return -2;
+    if (verify.verify_month < 1 || verify.verify_month > 12) return -2;
+    
+     // number of days in a month
+    
+    int days_in_month [13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    
+    
+    // int leap = (verify.verify_year % 4 == 0 &&
+    //            (verify.verify_year % 100 != 0 || verify.verify_year % 400 == 0));
+    // if (leap) {
+    //     days_in_month[2] = 29;
+    // }
+
+    if (verify.verify_day < 1 || verify.verify_day > days_in_month[verify.verify_month]) {
+        return -2;
+    }
+    
+    
+  
+    
+ // build struct tm of from the standard structure of the library <time.h>
+    
+    struct tm tm_time;
+    tm_time.tm_year = verify.verify_year - 1900;
+    tm_time.tm_mon  = verify.verify_month - 1;
+    tm_time.tm_mday = verify.verify_day;
+    tm_time.tm_hour = verify.verify_hours;
+    tm_time.tm_min  = verify.verify_min;
+    tm_time.tm_sec  = verify.verify_sec;
+    tm_time.tm_isdst = -1;
+
+    // Convertir en time_t avec utils_timegm
+    
+    datetime->t = utils_timegm(&tm_time);
+
+    // Copier la chaîne d’origine
+    strncpy(datetime->rfc3339_string, datetime_str, DATETIME_LENGTH);
+    datetime->rfc3339_string[DATETIME_LENGTH] = '\0';
+
+    return 0; // succès
+}
+
+
+
 
 /**
  * Parses an observation line (offset value)
@@ -100,21 +186,34 @@ int parse_datetime(const char *datetime_str, struct Datetime *datetime);
  * @param value Output value
  * @return 0 on success, -1 on format error, -2 on negative offset
  */
-int parse_observation(const char *line, int *offset, int *value);
+int parse_observation(const char *line, int *offset, int *value){
+    
+    if ( sscanf(line, "%d %d",offset,value)!=2) return -1;
+    
+    if (*offset < 0)return -2;
+    
+    return 0;
+}
 
 /**
  * Reads and validates a timeseries from stdin
  * @param ts Output timeseries structure
  * @return 0 on success, error code otherwise
  */
-int read_timeseries(struct Timeseries *ts);
+int read_timeseries(struct Timeseries *ts) {
+    // TODO: implémenter lecture complète
+    return 0;
+}
+
 
 /**
  * Shows the timeseries (show command)
  * @param ts Timeseries to display
  */
-void show_timeseries(const struct Timeseries *ts);
+void show_timeseries(const struct Timeseries *ts) {
+    // TODO: implémenter affichage
 
+}
 /**
  * Describes the timeseries (describe command)
  * @param ts Timeseries to describe
@@ -133,23 +232,42 @@ void offset_to_datetime(time_t start_time, int offset, struct Datetime *result);
 // ----
 
 int main(int argc, char *argv[]) {
-    int cmd = parse_command(argc, argv);
     
+    
+    // test 
+    int o, v;
+    char line[100];
+
+    while (fgets(line, sizeof(line), stdin)) {
+        int res = parse_observation(line, &o, &v);
+        printf("res=%d offset=%d value=%d\n", res, o, v);
+        
+        
+     int cmd = parse_command(argc, argv);
+
     if (cmd == -1) {
-        return 1;
+        return 1; // error usage
     }
-    
+
     switch (cmd) {
         case 0: // help
             printf("%s", HELP);
-            break;
+            return 0;
         case 1: // show
-            printf("TODO: implement show command\n");
-            break;
+            struct Timeseries ts;
+            int err = read_timeseries(&ts);
+            if (err != 0) return 2;
+            show_timeseries(&ts);
+            return 0;
         case 2: // describe
-            printf("TODO: implement describe command\n");
-            break;
+            // TODO: implement tempo_describe()
+            return 0;
+        default:
+            return 1;
     }
     
-    return 0;
+    
+    
+    
+    } 
 }
