@@ -193,6 +193,7 @@ int parse_observation(const char *line, int *offset, int *value){
     if (*offset < 0)return -2;
     
     return 0;
+    
 }
 
 /**
@@ -234,13 +235,13 @@ void offset_to_datetime(time_t start_time, int offset, struct Datetime *result);
 int main(int argc, char *argv[]) {
     
     
-    // test 
-    int o, v;
-    char line[100];
+    // // test parse_observation
+    // int o, v;
+    // char line[100];
 
-    while (fgets(line, sizeof(line), stdin)) {
-        int res = parse_observation(line, &o, &v);
-        printf("res=%d offset=%d value=%d\n", res, o, v);
+    // while (fgets(line, sizeof(line), stdin)) {
+    //     int res = parse_observation(line, &o, &v);
+    //     printf("res=%d offset=%d value=%d\n", res, o, v);
         
         
      int cmd = parse_command(argc, argv);
