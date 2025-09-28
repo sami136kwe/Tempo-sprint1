@@ -61,6 +61,15 @@ struct Timeseries {
   int values[MAX_SIZE];
 };
 
+// Prototypes
+int parse_command(int argc, char *argv[]);
+int parse_datetime(const char *datetime_str, struct Datetime *datetime);
+int parse_observation(const char *line, int *offset, int *value);
+int read_timeseries(struct Timeseries *ts);
+void show_timeseries(const struct Timeseries *ts);
+void describe_timeseries(const struct Timeseries *ts);
+void offset_to_datetime(time_t start_time, int offset, struct Datetime *result);
+
 
 
 /**
@@ -202,7 +211,35 @@ int parse_observation(const char *line, int *offset, int *value){
  * @return 0 on success, error code otherwise
  */
 int read_timeseries(struct Timeseries *ts) {
-    // TODO: implémenter lecture complète
+    char buffer[256];
+
+    // Lire la première ligne (datetime)
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+    ts->size = 0;
+    return 0;
+    }
+    buffer[strcspn(buffer, "\r\n")] = 0;   // <-- très important
+
+       int dt_result = parse_datetime(buffer, &ts->start_datetime);
+    if (dt_result != 0) {
+        return 2; // erreur datetime
+    }
+
+    unsigned int i = 0;
+
+    // Lire les observations
+    while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+        // Supprimer le \n ou \r\n
+        buffer[strcspn(buffer, "\r\n")] = 0;
+
+        int result = parse_observation(buffer, &ts->offsets[i], &ts->values[i]);
+        if (result != 0 ) {
+            return 2; // erreur observation
+        }
+        i++;
+    }
+
+    ts->size = i;
     return 0;
 }
 
@@ -212,14 +249,113 @@ int read_timeseries(struct Timeseries *ts) {
  * @param ts Timeseries to display
  */
 void show_timeseries(const struct Timeseries *ts) {
-    // TODO: implémenter affichage
+    if (ts->size == 0) {
+        return; // rien à afficher
+    }
 
+    // Tableau temporaire pour stocker datetimes + valeurs
+    struct Datetime datetimes[MAX_SIZE];
+    int values[MAX_SIZE];
+
+    // 1. Convertir offsets -> datetimes
+    for (unsigned int i = 0; i < ts->size; i++) {
+        offset_to_datetime(ts->start_datetime.t, ts->offsets[i], &datetimes[i]);
+        values[i] = ts->values[i];
+    }
+
+    // 2. Trier (algorithme à bulles pour débutant)
+    for (unsigned int i = 0; i < ts->size; i++) {
+        for (unsigned int j = i + 1; j < ts->size; j++) {
+            if (datetimes[i].t > datetimes[j].t) {
+                // échanger datetimes
+                struct Datetime tmp_dt = datetimes[i];
+                datetimes[i] = datetimes[j];
+                datetimes[j] = tmp_dt;
+
+                // échanger valeurs
+                int tmp_val = values[i];
+                values[i] = values[j];
+                values[j] = tmp_val;
+            }
+        }
+    }
+
+    // 3. Afficher en supprimant les doublons
+    for (unsigned int i = 0; i < ts->size; i++) {
+        // Si c’est un doublon → garder seulement le dernier
+        if (i + 1 < ts->size && datetimes[i].t == datetimes[i + 1].t) {
+            continue; // on saute l’ancien doublon
+        }
+        printf("%s %d\n", datetimes[i].rfc3339_string, values[i]);
+    }
 }
 /**
  * Describes the timeseries (describe command)
  * @param ts Timeseries to describe
  */
-void describe_timeseries(const struct Timeseries *ts);
+void describe_timeseries(const struct Timeseries *ts) {
+    if (ts->size == 0) {
+        // Cas particulier : série vide
+        printf("Domain: [%s, %s]\n", ts->start_datetime.rfc3339_string, ts->start_datetime.rfc3339_string);
+        printf("Codomain: none\n");
+        printf("Size: 0\n");
+        printf("Duration: 0\n");
+        printf("Amplitude: 0\n");
+        return;
+    }
+
+    // Tableaux temporaires pour observations uniques
+   struct Datetime datetimes[MAX_SIZE];
+    int values[MAX_SIZE];
+    unsigned int unique_size = 0;
+
+       for (unsigned int i = 0; i < ts->size; i++) {
+        struct Datetime dt;
+        offset_to_datetime(ts->start_datetime.t, ts->offsets[i], &dt);
+
+           int found = -1;
+        for (unsigned int j = 0; j < unique_size; j++) {
+            if (datetimes[j].t == dt.t) {
+                found = j;
+                break;
+            }
+        }
+
+           if (found >= 0) {
+            // Doublon → garder la dernière valeur
+            datetimes[found] = dt;
+            values[found] = ts->values[i];
+        } else {
+            // Nouvelle observation
+            datetimes[unique_size] = dt;
+            values[unique_size] = ts->values[i];
+            unique_size++;
+        }
+    }
+
+    // 2. Trouver min et max datetime
+    struct Datetime min_dt = datetimes[0];
+    struct Datetime max_dt = datetimes[0];
+    for (unsigned int i = 1; i < unique_size; i++) {
+        if (datetimes[i].t < min_dt.t) min_dt = datetimes[i];
+        if (datetimes[i].t > max_dt.t) max_dt = datetimes[i];
+    }
+
+    // 3. Trouver min et max valeurs
+    int min_val = values[0];
+    int max_val = values[0];
+    for (unsigned int i = 1; i < unique_size; i++) {
+        if (values[i] < min_val) min_val = values[i];
+        if (values[i] > max_val) max_val = values[i];
+    }
+
+    // 4. Afficher résultats
+    printf("Domain: [%s, %s]\n", min_dt.rfc3339_string, max_dt.rfc3339_string);
+    printf("Codomain: [%d, %d]\n", min_val, max_val);
+    printf("Size: %u\n", unique_size);
+    printf("Duration: %ld\n", max_dt.t - min_dt.t);
+    printf("Amplitude: %d\n", max_val - min_val);
+}
 
 /**
  * Converts offset to datetime
@@ -227,25 +363,48 @@ void describe_timeseries(const struct Timeseries *ts);
  * @param offset Offset in seconds
  * @param result Output datetime
  */
-void offset_to_datetime(time_t start_time, int offset, struct Datetime *result);
+void offset_to_datetime(time_t start_time, int offset, struct Datetime *result) {
+    // 1. Calculer le temps
+    result->t = start_time + offset;
+
+    // 2. Convertir en struct tm
+    struct tm tm;
+    gmtime_r(&result->t, &tm);
+
+    // 3. Construire la string RFC3339
+    strftime(result->rfc3339_string, sizeof(result->rfc3339_string),
+             "%Y-%m-%dT%H:%M:%S", &tm);
+}
 
 // Main
 // ----
 
 int main(int argc, char *argv[]) {
-    
-    
-    // // test parse_observation
-    // int o, v;
-    // char line[100];
+// #if 0   
+//     // --- MODE TEST ---
+//     struct Timeseries ts;
+//     int res = read_timeseries(&ts);
 
-    // while (fgets(line, sizeof(line), stdin)) {
-    //     int res = parse_observation(line, &o, &v);
-    //     printf("res=%d offset=%d value=%d\n", res, o, v);
-        
-        
-     int cmd = parse_command(argc, argv);
+//     if (res != 0) {
+//         printf("Erreur: read_timeseries a retourné %d\n", res);
+//         return res;
+//     }
 
+//     printf("Timeseries size = %u\n", ts.size);
+//     printf("Start datetime = %s\n", ts.start_datetime.rfc3339_string);
+
+//     for (unsigned int i = 0; i < ts.size; i++) {
+//         printf("offset=%d value=%d\n", ts.offsets[i], ts.values[i]);
+
+//         struct Datetime d;
+//         offset_to_datetime(ts.start_datetime.t, ts.offsets[i], &d);
+//         printf("→ Calcul datetime: %s value=%d\n", d.rfc3339_string, ts.values[i]);
+//     }
+
+//     return 0;
+// #else
+    // --- MODE NORMAL ---
+    int cmd = parse_command(argc, argv);
     if (cmd == -1) {
         return 1; // error usage
     }
@@ -254,21 +413,27 @@ int main(int argc, char *argv[]) {
         case 0: // help
             printf("%s", HELP);
             return 0;
-        case 1: // show
+        case 1: { // show
             struct Timeseries ts;
             int err = read_timeseries(&ts);
             if (err != 0) return 2;
             show_timeseries(&ts);
             return 0;
-        case 2: // describe
-            // TODO: implement tempo_describe()
+        }
+        case 2: { // describe
+            struct Timeseries ts;
+            int err = read_timeseries(&ts);
+            if (err != 0) return 2;
+            describe_timeseries(&ts);
             return 0;
+        }
         default:
             return 1;
     }
-    
-    
-    
-    
-    } 
+// #endif
 }
+    
+    
+
+
+    
