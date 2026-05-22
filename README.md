@@ -1,74 +1,235 @@
-# Travail pratique 1: Mise en place de l'application `tempo`
+# INF3135 — Construction et maintenance de logiciels
+## Application `tempo` — Travaux pratiques 1, 2 et 3
+
+Cours : INF3135 — Hiver 2025  
+Université du Québec à Montréal (UQAM)  
+Auteur : Sami Geagea
+
+---
 
 ## Description
 
-L'application `tempo` est un programme en C permettant de lire, afficher et analyser des
-**séries temporelles** fournies sur l'entrée standard (`stdin`). Une série temporelle est
-composée d'une horodate de référence suivie de plusieurs observations `(OFFSET, VALUE)`.
+Ce dépôt regroupe les trois travaux pratiques du cours INF3135, 
+qui consistent à concevoir et faire évoluer une application en C 
+nommée `tempo`. Cette application permet de manipuler des 
+**séries temporelles**, c'est-à-dire des suites de valeurs 
+numériques associées à des instants dans le temps.
 
-Les fonctionnalités offertes sont :
-* `tempo help` : affiche le guide d’utilisation
-* `tempo show` : affiche les observations avec horodates absolues
-* `tempo describe` : affiche les caractéristiques de la série (domaine, codomaine, etc.)
+---
 
+## Dépôts GitHub
 
-## Auteur
+Chaque sprint est disponible dans son propre dépôt avec l'historique complet des commits et toutes les branches :
 
-Sami Geagea (GEAS72090507)
+| Sprint | Dépôt | Branches |
+|--------|-------|----------|
+| Sprint 1 — Mise en place | [Tempo-sprint1](https://github.com/sami136kwe/Tempo-sprint1) | `master`, `correction` |
+| Sprint 2 — Extension | [Tempo-sprint2](https://github.com/sami136kwe/Tempo-sprint2) | `master`, `validate-subcommands`, `dynamic-timeseries`, `interpolate-subcommand`, `interpolate-step-option` |
+| Sprint 3 — Bibliothèques | [Tempo-sprint3](https://github.com/sami136kwe/Tempo-sprint3) | `master`, `correction`, `from-json`, `test-timeseries-libtap`, `to-gnuplot` |
 
-## Fonctionnement
+---
 
-1. Compiler le projet :
+## Télécharger les 3 dépôts
 
-```sh
-$ cd src
-$ make build
+```bash
+git clone git@github.com:sami136kwe/Tempo-sprint1.git && \
+git clone git@github.com:sami136kwe/Tempo-sprint2.git && \
+git clone git@github.com:sami136kwe/Tempo-sprint3.git
 ```
 
-2. Utiliser l’exécutable avec l’une des sous-commandes suivantes :
+---
 
-```sh
-$ bin/tempo help
-$ bin/tempo show < examples/6.ts
-$ bin/tempo describe < examples/6.ts
+## Structure du dépôt
+
+```
+Tempo/
+├── Tempo-sprint1/   → TP1 : Mise en place de l'application tempo
+├── Tempo-sprint2/   → TP2 : Extension avec nouvelles fonctionnalités
+└── Tempo-sprint3/   → TP3 : Intégration de bibliothèques externes
 ```
 
-## Tests
+---
 
-Pour exécuter la suite de tests fonctionnels :
+## Sprint 1 — Mise en place de `tempo`
 
-si on est dans le repertoire inf3135-253-tp1
-```sh
-$ make test
+🔗 [github.com/sami136kwe/Tempo-sprint1](https://github.com/sami136kwe/Tempo-sprint1)
+
+### Description
+Implémentation des bases de l'application `tempo` avec 3 
+sous-commandes :
+- `tempo help` — Affiche le manuel d'utilisation
+- `tempo show` — Affiche les observations en ordre chronologique
+- `tempo describe` — Affiche les statistiques de la série temporelle
+
+### Compilation
+```bash
+cd Tempo-sprint1
+make
 ```
 
-si on est dans le repertoire inf3135-253-tp1/src
-```sh
-$ cd ..
-$ make test
+### Exécution
+```bash
+# Afficher l'aide
+bin/tempo help
+
+# Afficher les observations
+bin/tempo show < examples/6.ts
+
+# Afficher les statistiques
+bin/tempo describe < examples/6.ts
 ```
 
-Les tests utilisent le framework Bats.
+### Format d'entrée
+```
+2025-09-01T00:00:00
+0 10
+28800 40
+57600 15
+```
+La première ligne est l'horodate de référence (format `AAAA-mm-JJTHH:MM:SS`).  
+Les lignes suivantes sont des observations : `DÉCALAGE VALEUR`.
 
-## Dépendances
+### Format de sortie (`show`)
+```
+2025-09-01T00:00:00 10
+2025-09-01T08:00:00 40
+2025-09-01T16:00:00 15
+```
 
-* [GCC](https://gcc.gnu.org/) — compilateur C standard
-* [Bats (Bash Automated Testing System)](https://github.com/bats-core/bats-core) pour les tests fonctionnels
-* `make` — pour l'automatisation de la compilation et des tests
+### Format de sortie (`describe`)
+```
+Domain: [2025-09-01T00:00:00, 2025-09-03T00:00:00]
+Codomain: [10, 50]
+Size: 6
+Duration: 172800
+Amplitude: 40
+```
 
-## Références
-* cours 2 et 3 de inf3135 
-* guides sur [Stack Overflow](https://stackoverflow.com)
-* documentation c [tutorialspoint] (https://www.tutorialspoint.com/c_standard_library/index.htm)
-* Aide pour ecire la documentation  et aider a deboger avec la IA ChatGPT
+### Tests
+```bash
+make test
+```
 
-## État du projet
+---
 
-* [X] Le nom du dépôt GitLab est exactement `inf3135-253-tp1`
-* [X] L'URL du dépôt GitLab est exactement `https://gitlab.info.uqam.ca/utilisateur/inf3135-253-tp1`
-* [X] Les utilisateurs `blondin_al` et `guite-vinet.julien` on accès au projet en mode *Maintainer*
-* [X] Le dépôt GitLab est un *fork* du gabarit fourni
-* [X] Le dépôt GitLab est privé
-* [X] Le dépôt contient au moins un fichier `.gitignore`
-* [X] Les sections incomplètes de ce fichier (`README.md`) ont été complétées
-* [X] Toutes les fonctions du fichier `tempo.c` sont documentées (*docstring*)
+## Sprint 2 — Extension de `tempo`
+
+🔗 [github.com/sami136kwe/Tempo-sprint2](https://github.com/sami136kwe/Tempo-sprint2)
+
+### Description
+Ajout de nouvelles fonctionnalités sur 4 branches indépendantes :
+- `validate-subcommands` — Validation stricte des sous-commandes
+- `dynamic-timeseries` — Allocation dynamique pour les séries temporelles
+- `interpolate-subcommand` — Nouvelle sous-commande `interpolate`
+- `interpolate-step-option` — Option `-s|--step` pour le pas d'interpolation
+
+### Compilation
+```bash
+cd Tempo-sprint2
+make
+```
+
+### Nouvelle sous-commande : `interpolate`
+Interpole linéairement les valeurs entre chaque observation.
+
+```bash
+# Interpolation avec pas de 1 seconde (défaut)
+bin/tempo interpolate < examples/3_10s.ts
+
+# Interpolation avec pas de 2 secondes
+bin/tempo interpolate -s 2s < examples/3_10s.ts
+
+# Interpolation avec pas de 10 minutes
+bin/tempo interpolate -s 10m < examples/3_10s.ts
+
+# Interpolation avec pas de 4 heures
+bin/tempo interpolate -s 4h < examples/3_10s.ts
+```
+
+### Codes de retour
+| Code | Signification |
+|------|--------------|
+| `0`  | Succès |
+| `1`  | Erreur d'utilisation |
+| `2`  | Erreur dans les données |
+| `3`  | Mémoire insuffisante |
+
+### Tests
+```bash
+make test
+```
+
+---
+
+## Sprint 3 — Intégration de bibliothèques
+
+🔗 [github.com/sami136kwe/Tempo-sprint3](https://github.com/sami136kwe/Tempo-sprint3)
+
+### Description
+Ajout de fonctionnalités avancées sur 3 branches :
+- `test-timeseries-libtap` — Tests unitaires avec Libtap
+- `from-json` — Lecture de séries temporelles au format JSON
+- `to-gnuplot` — Génération de scripts Gnuplot
+
+### Dépendances
+- [Jansson](https://github.com/akheron/jansson) — Lecture JSON
+- [Libtap](https://github.com/zorgnax/libtap) — Tests unitaires
+- [Gnuplot](http://www.gnuplot.info/) — Visualisation
+
+### Compilation
+```bash
+cd Tempo-sprint3
+make
+```
+
+### Option JSON (`-J|--from-json`)
+Permet de lire une série temporelle au format JSON :
+
+```bash
+bin/tempo show --from-json < examples/serie.json
+bin/tempo describe -J < examples/serie.json
+bin/tempo interpolate -J < examples/serie.json
+```
+
+Format JSON attendu :
+```json
+{
+  "origin": "2025-09-01T00:00:00",
+  "observations": [
+    {"offset": 0, "value": 10},
+    {"offset": 28800, "value": 40}
+  ]
+}
+```
+
+### Sous-commande `gnuplot`
+Génère un script Gnuplot pour visualiser la série temporelle :
+
+```bash
+# Générer le script
+bin/tempo gnuplot < examples/6.ts > plot.gp
+
+# Exécuter le script avec Gnuplot
+gnuplot -e "set output 'timeseries.png'" plot.gp
+```
+
+### Tests
+```bash
+make test
+```
+
+---
+
+## Technologies utilisées
+
+- **Langage :** C (compilé avec `g++ v12`)
+- **Outils :** Git, Make, Bats, Libtap, Jansson, Gnuplot
+- **Plateforme :** GitLab UQAM → GitHub
+
+---
+
+## Auteurs
+
+**Sami Geagea**  
+**Mehdi Lyafy**  
+**Alexandre Blondin Massé**
